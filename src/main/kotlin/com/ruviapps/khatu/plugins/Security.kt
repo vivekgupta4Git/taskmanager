@@ -1,4 +1,4 @@
-package com.ruviapps
+package com.ruviapps.khatu.plugins
 
 import com.kborowy.authprovider.firebase.firebase
 import io.ktor.server.application.*

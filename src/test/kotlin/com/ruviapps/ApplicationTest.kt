@@ -1,5 +1,6 @@
 package com.ruviapps
 
+import com.ruviapps.khatu.plugins.configureRouting
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
