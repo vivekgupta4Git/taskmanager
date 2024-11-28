@@ -15,8 +15,16 @@ object ObjectIdSerializer : KSerializer<String> {
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): String {
         return when(decoder){
-            is BsonDecoder -> decoder.decodeBsonValue().asObjectId().value.toHexString()
-            is JsonDecoder -> decoder.decodeString()
+            is BsonDecoder -> decoder.decodeObjectId().toHexString()
+              //  .decodeBsonValue().asObjectId().value.toHexString()
+            is JsonDecoder -> {
+                when(val jsonElement =  decoder.decodeJsonElement()){
+                   is JsonObject -> {
+                       jsonElement["\$oid"]?.jsonPrimitive?.content ?: ""
+                   }
+                   else -> decoder.decodeString()
+               }
+            }
             else -> throw SerializationException("${decoder::class.java.name} is not supported for deserialization")
         }
     }

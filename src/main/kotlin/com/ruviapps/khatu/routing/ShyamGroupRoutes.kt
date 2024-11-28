@@ -1,15 +1,15 @@
 package com.ruviapps.khatu.routing
 
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroup
-import com.ruviapps.khatu.domain.entity.toResponse
-import com.ruviapps.khatu.request.ShyamPremiRequest
-import com.ruviapps.khatu.request.toDomain
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupUpdateDTO
 import com.ruviapps.khatu.service.ShyamGroupService
 import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 fun Route.shyamGroupRoutes(
     service: ShyamGroupService
@@ -17,9 +17,14 @@ fun Route.shyamGroupRoutes(
     //Create Group
     post {
         try {
-            val request = call.receive<ShyamPremiRequest>()
-            val inserted = service.createGroup(request.toDomain())
-            call.respond(HttpStatusCode.Created, inserted)
+            val request = call.receive<ShyamPremiGroupInsertDTO>()
+            val json = Json {
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+            }
+            println("request. fee frequency  = ${json.encodeToString(request)}")
+            val inserted = service.createGroup(request) ?: return@post call.respond(HttpStatusCode.Conflict)
+            call.respond(inserted)
         } catch (e: NoTransformationFoundException) {
             call.respond(HttpStatusCode.BadRequest)
         }
@@ -27,8 +32,6 @@ fun Route.shyamGroupRoutes(
     //Get All
     get {
         val groups = service.findAll()
-        if (groups.isEmpty())
-            return@get call.respond(HttpStatusCode.NotFound)
 
         call.respond(HttpStatusCode.Found, groups)
     }
@@ -42,7 +45,7 @@ fun Route.shyamGroupRoutes(
 
         call.respond(
             HttpStatusCode.Found,
-            found.toResponse()
+            found
         )
     }
     //delete by id
@@ -53,19 +56,19 @@ fun Route.shyamGroupRoutes(
         val deleted = service.deleteGroup(id) ?: return@delete call.respond(HttpStatusCode.NotModified)
         call.respond(
             HttpStatusCode.Accepted,
-            deleted.toResponse()
+            deleted
         )
     }
     //update by id
     put("/{id}") {
         val id: String = call.parameters["id"]
             ?: return@put call.respond(HttpStatusCode.BadRequest)
-        val group = call.receive<ShyamPremiGroup>()
+        val group = call.receive<ShyamPremiGroupUpdateDTO>()
         val updated = service.updateGroup(id, group) ?: return@put call.respond(HttpStatusCode.NotModified)
 
         call.respond(
             HttpStatusCode.Accepted,
-            updated.toResponse()
+            updated
         )
     }
 }

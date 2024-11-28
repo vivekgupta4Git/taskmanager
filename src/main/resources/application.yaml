@@ -1,6 +1,9 @@
 ktor:
+    development: true
     application:
         modules:
             - com.ruviapps.ApplicationKt.module
     deployment:
         port: 8080
+        watch:
+            - classes

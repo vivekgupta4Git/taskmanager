@@ -4,13 +4,13 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.FindOneAndUpdateOptions
-import com.mongodb.client.model.Updates
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroup
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroup.Companion.toDocument
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroup.Companion.toShyamPremiGroup
-import com.ruviapps.khatu.domain.entity.toResponse
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupGetDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupGetDTO.Companion.toGetDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO.Companion.toDocument
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupUpdateDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupUpdateDTO.Companion.toUpdates
 import com.ruviapps.khatu.domain.ports.ShyamGroupRepository
-import com.ruviapps.khatu.response.ShyamPremiGroupResponse
 import com.ruviapps.khatu.util.getObjectIdAsString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,70 +32,47 @@ class ShyamGroupRepositoryImpl(
         const val GROUP_COLLECTION = "shyam_premi_collection"
     }
 
-    override suspend fun getAllGroup(): List<ShyamPremiGroup> = withContext(Dispatchers.IO) {
-        val result = collection.find()
-        val list = mutableListOf<ShyamPremiGroup>()
-        result.forEach { document ->
-            val id = document["_id"]
-            val group = ShyamPremiGroup(
-                id = id.toString(),
-                name = document["name"].toString(),
-                createdDate = document["createdDate"].toString(),
-                feeFrequency = document["feeFrequency"].toString(),
-                joiningFee = if (document["joiningFee"] == null) 0.0 else document["joiningFee"].toString().toDouble()
-            )
-            list.add(group)
-        }
-
-        list
+    override suspend fun getAllGroup(): List<ShyamPremiGroupGetDTO> = withContext(Dispatchers.IO) {
+        collection.find().toList().map { it.toGetDTO() }
     }
 
-    override suspend fun insertGroup(shyamPremiGroup: ShyamPremiGroup): ShyamPremiGroupResponse =
+    override suspend fun insertGroup(shyamPremiGroup: ShyamPremiGroupInsertDTO): ShyamPremiGroupGetDTO? =
         withContext(Dispatchers.IO) {
             val result = collection.insertOne(shyamPremiGroup.toDocument())
-            shyamPremiGroup.toResponse().copy(
-                id = result.getObjectIdAsString()
-            )
+            val id = result.getObjectIdAsString()
+            findById(id ?: "")
         }
 
-    override suspend fun deleteById(id: String): ShyamPremiGroup? = withContext(Dispatchers.IO) {
+    override suspend fun deleteById(id: String): ShyamPremiGroupGetDTO? = withContext(Dispatchers.IO) {
         val query = Filters.eq("_id", ObjectId(id))
         val result = collection.findOneAndDelete(query)
-        result?.toShyamPremiGroup()?.copy(
-            id = id
-        )
+        result?.toGetDTO()
     }
 
-    override suspend fun findById(id: String): ShyamPremiGroup? {
+    override suspend fun findById(id: String): ShyamPremiGroupGetDTO? {
 
         return withContext(Dispatchers.IO) {
             collection.find(
                 Filters.eq("_id", ObjectId(id))
-            ).first()?.toShyamPremiGroup()?.copy(
-                id = id
-            )
+            ).first()?.toGetDTO()
 
         }
     }
 
-    override suspend fun updateGroup(id: String, shyamPremiGroup: ShyamPremiGroup): ShyamPremiGroup {
+    override suspend fun updateGroup(
+        id: String,
+        shyamPremiGroupUpdateDTO: ShyamPremiGroupUpdateDTO
+    ): ShyamPremiGroupGetDTO? {
         return withContext(Dispatchers.IO) {
             val query = Filters.eq("_id", ObjectId(id))
-            //below line causing problem in the _id field
-            //val result = collection.findOneAndUpdate(query, shyamPremiGroup.toDocument())
-            val updates = Updates.combine(
-                Updates.set("name", shyamPremiGroup.name),
-                Updates.set("joiningFee",shyamPremiGroup.joiningFee),
-                Updates.set("feeFrequency",shyamPremiGroup.feeFrequency),
-                Updates.set("createdDate",shyamPremiGroup.createdDate)
-            )
+            val updates = shyamPremiGroupUpdateDTO.toUpdates()
             val updateOptions = FindOneAndUpdateOptions().upsert(true)
             val result = collection.findOneAndUpdate(
                 query,
                 updates,
                 updateOptions
             )
-            shyamPremiGroup.copy(id = result?.get("_id").toString())
+            result?.toGetDTO()
         }
     }
 }

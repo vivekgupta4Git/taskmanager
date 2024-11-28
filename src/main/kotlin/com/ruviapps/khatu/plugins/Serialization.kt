@@ -16,7 +16,7 @@ fun Application.configureSerialization() {
                 isLenient = true
                 prettyPrint = true
             },
-            contentType = ContentType.Any
+            contentType = ContentType.Application.Json
         )
     }
     routing {

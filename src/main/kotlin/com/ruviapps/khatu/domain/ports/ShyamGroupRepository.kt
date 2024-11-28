@@ -1,12 +1,13 @@
 package com.ruviapps.khatu.domain.ports
 
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroup
-import com.ruviapps.khatu.response.ShyamPremiGroupResponse
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupGetDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupUpdateDTO
 
 interface ShyamGroupRepository {
-    suspend fun insertGroup(shyamPremiGroup: ShyamPremiGroup) : ShyamPremiGroupResponse
-    suspend fun getAllGroup() : List<ShyamPremiGroup>
-    suspend fun deleteById(id : String) : ShyamPremiGroup?
-    suspend fun findById(id : String) : ShyamPremiGroup?
-    suspend fun updateGroup(id : String,shyamPremiGroup: ShyamPremiGroup) : ShyamPremiGroup?
+    suspend fun insertGroup(shyamPremiGroup: ShyamPremiGroupInsertDTO) : ShyamPremiGroupGetDTO?
+    suspend fun getAllGroup() : List<ShyamPremiGroupGetDTO>
+    suspend fun deleteById(id : String) : ShyamPremiGroupGetDTO?
+    suspend fun findById(id : String) : ShyamPremiGroupGetDTO?
+    suspend fun updateGroup(id : String,shyamPremiGroupUpdateDTO: ShyamPremiGroupUpdateDTO) : ShyamPremiGroupGetDTO?
 }
