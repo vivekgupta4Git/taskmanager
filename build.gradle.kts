@@ -21,19 +21,10 @@ repositories {
 
 dependencies {
     implementation(project(":kolor"))
-    implementation(libs.bson.kotlinx)
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.websockets)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.mongodb.driver.core)
-    implementation(libs.mongodb.driver.sync)
-    implementation(libs.bson)
-    implementation(libs.ktor.server.auth)
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.mongodb)
     implementation(libs.firebase.auth.provider)
-    implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(libs.ktor.server.config.yaml)
-    testImplementation(libs.ktor.server.test.host)
+
     testImplementation(libs.kotlin.test.junit)
 }
