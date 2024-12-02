@@ -7,15 +7,16 @@ import com.ruviapps.khatu.service.ShyamGroupService
 import com.sun.org.apache.xml.internal.security.algorithms.JCEMapper
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.*
 
 fun Application.configureRouting(
-    shyamGroupService : ShyamGroupService
+    shyamGroupService: ShyamGroupService
 ) {
     routing {
-        route("/api/token"){
+        route("/api/token") {
             get {
                 val secret = environment.config.property("ktor.jwt.secret").getString()
                 val issuer = environment.config.property("ktor.jwt.issuer").getString()

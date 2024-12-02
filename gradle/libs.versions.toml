@@ -16,7 +16,7 @@ ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negoti
 ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor-version" }
 ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml-jvm", version.ref = "ktor-version" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor-version" }
-
+ktor-status-page = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor-version" }
 mongodb-driver-core = { module = "org.mongodb:mongodb-driver-core", version.ref = "mongo-version" }
 mongodb-driver-sync = { module = "org.mongodb:mongodb-driver-sync", version.ref = "mongo-version" }
 bson = { module = "org.mongodb:bson", version.ref = "mongo-version" }
@@ -43,6 +43,7 @@ ktor = [
     "ktor-server-netty",
     "ktor-server-config-yaml",
     "ktor-server-request-validation",
-    "ktor-server-test-host"]
+    "ktor-server-test-host",
+    "ktor-status-page",]
 
 mongodb = ["mongodb-driver-core", "mongodb-driver-sync", "bson", "bson-kotlinx"]
