@@ -9,24 +9,31 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import java.time.Instant
 
+interface GetBaseDTo {
+    val id: String?
+    companion object{
+        val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
+        inline fun <reified T>Document.toGetDTO(): T = json.decodeFromString<T>(this.toJson())
+    }
+}
+
 @Serializable
 data class ShyamPremiGroupGetDTO(
     @SerialName("_id")
     @Serializable(with = ObjectIdSerializer::class)
-    val id: String? = null,
+    override val id: String? = null,
     val name: String? = null,
     val createdDate: String? = null,
     val joiningFee: Double? = null,
     val frequency: String? = null
-) {
-    companion object {
-        private val json = Json {
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-        }
+) : GetBaseDTo
 
-        fun Document.toGetDTO(): ShyamPremiGroupGetDTO = json.decodeFromString<ShyamPremiGroupGetDTO>(this.toJson())
-    }
+@Serializable
+sealed class InsertBaseDTO{
+    abstract fun InsertBaseDTO.toDocument(): Document
 }
 
 @Serializable
@@ -38,10 +45,15 @@ data class ShyamPremiGroupInsertDTO @OptIn(ExperimentalSerializationApi::class) 
     val frequency: String = if (joiningFee == 0.0) "never" else "monthly",
     @EncodeDefault
     val createdDate: String = Instant.now().toUTCString(),
-) {
-    companion object {
-        fun ShyamPremiGroupInsertDTO.toDocument(): Document = Document.parse(Json.encodeToString(this@toDocument))
+) : InsertBaseDTO() {
+
+    override fun InsertBaseDTO.toDocument(): Document {
+        return Document.parse(Json.encodeToString(this@ShyamPremiGroupInsertDTO))
     }
+}
+
+interface UpdateBaseDTO {
+    fun UpdateBaseDTO.toUpdates(): Bson
 }
 
 @Serializable
@@ -50,15 +62,13 @@ data class ShyamPremiGroupUpdateDTO(
     val createdDate: String,
     val joiningFee: Double,
     val frequency: String
-) {
-    companion object {
-        fun ShyamPremiGroupUpdateDTO.toUpdates(): Bson = Updates.combine(
+) : UpdateBaseDTO{
+    override fun UpdateBaseDTO.toUpdates(): Bson {
+        return Updates.combine(
             Updates.set("name", name),
             Updates.set("createdDate", createdDate),
             Updates.set("joiningFee", joiningFee),
             Updates.set("frequency", frequency)
         )
-        fun ShyamPremiGroupUpdateDTO.toDocument(): Document = Document.parse(Json.encodeToString(this@toDocument))
-
     }
 }

@@ -1,23 +1,25 @@
 package com.ruviapps.calm
 
+import com.mongodb.client.AggregateIterable
+import com.mongodb.client.FindIterable
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
-import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.ruviapps.khatu.domain.entity.GetBaseDTo
+import com.ruviapps.khatu.domain.entity.InsertBaseDTO
+import com.ruviapps.khatu.domain.entity.UpdateBaseDTO
 import com.ruviapps.khatu.util.getObjectIdAsString
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
-abstract class MongoCrudRepository<INSERT_DTO : Any, GET_DTO : Any, UPDATE_DTO : Any>(
+abstract class MongoCrudRepository<INSERT_DTO : InsertBaseDTO, GET_DTO : GetBaseDTo, UPDATE_DTO : UpdateBaseDTO>(
     database: MongoDatabase,
     collectionName: String,
 ) {
     abstract fun INSERT_DTO.insertDtoToDocument(): Document
     abstract fun UPDATE_DTO.toUpdateBson(): Bson
     abstract fun Document.documentToGetDTO(): GET_DTO
-    abstract fun INSERT_DTO.insertModelToResponse(): GET_DTO
-    abstract fun UPDATE_DTO.updateModelToResponse(): GET_DTO
     open var collection: MongoCollection<Document> = database.getCollection(collectionName)
     open suspend fun withCollection(
         block: suspend MongoCollection<Document>.() -> GET_DTO?
@@ -92,20 +94,21 @@ abstract class MongoCrudRepository<INSERT_DTO : Any, GET_DTO : Any, UPDATE_DTO :
 
     open suspend fun updateById(
         id: String,
-        updateDto: UPDATE_DTO,
-        isUpsert: Boolean = true
-    ): GET_DTO? = withCollection {
+        updateDto: UPDATE_DTO): GET_DTO? = withCollection {
         try {
             requireValidId(id)
             val query = Filters.eq("_id", ObjectId(id))
             val updates = updateDto.toUpdateBson()
-            val updateOptions = FindOneAndUpdateOptions().upsert(isUpsert)
-            val result = findOneAndUpdate(
+            val result = updateOne(
                 query,
                 updates,
-                updateOptions
             )
-            result?.documentToGetDTO()
+            result.wasAcknowledged().let { isAcknowledged ->
+                if (isAcknowledged)
+                    findById(id)
+                else
+                    throw MongoException("Failed to update")
+            }
 
         } catch (ex: Exception) {
             throw MongoException(ex.message)
@@ -120,6 +123,18 @@ abstract class MongoCrudRepository<INSERT_DTO : Any, GET_DTO : Any, UPDATE_DTO :
         }
     }
 
+    open fun aggregationFlow(pipeline: () -> List<Bson>)
+            : AggregateIterable<Document> = with(collection) {
+        aggregate(pipeline())
+    }
+
+    open fun deleteWhere(filter: () -> Bson) = with(collection) {
+        deleteMany(filter()).deletedCount
+    }
+
+    open fun findWhere(filter: () -> Bson): FindIterable<Document> = with(collection) {
+        find(filter())
+    }
 }
 
 open class MongoException(message: String?) : Exception(message)
