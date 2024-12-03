@@ -32,8 +32,10 @@ fun Route.shyamGroupRoutes(
     //Get All
     get {
         val groups = service.findAll()
-
-        call.respond(HttpStatusCode.Found, groups)
+        if (groups?.isNotEmpty() == true)
+            call.respond(HttpStatusCode.Found, groups)
+        else
+            call.respond(HttpStatusCode.NotFound)
     }
     //Get By id
     get("/{id}") {
@@ -70,5 +72,12 @@ fun Route.shyamGroupRoutes(
             HttpStatusCode.Accepted,
             updated
         )
+    }
+    delete {
+        val deleted = service.deleteAll()
+        if (deleted > 0L)
+            call.respond(HttpStatusCode.OK)
+        else
+            call.respond(HttpStatusCode.NotModified)
     }
 }

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.Json
 import org.bson.Document
 import org.bson.conversions.Bson
 import java.time.Instant
-import javax.print.Doc
 
 @Serializable
 data class ShyamPremiGroupGetDTO(
@@ -27,7 +26,6 @@ data class ShyamPremiGroupGetDTO(
         }
 
         fun Document.toGetDTO(): ShyamPremiGroupGetDTO = json.decodeFromString<ShyamPremiGroupGetDTO>(this.toJson())
-
     }
 }
 
@@ -60,5 +58,7 @@ data class ShyamPremiGroupUpdateDTO(
             Updates.set("joiningFee", joiningFee),
             Updates.set("frequency", frequency)
         )
+        fun ShyamPremiGroupUpdateDTO.toDocument(): Document = Document.parse(Json.encodeToString(this@toDocument))
+
     }
 }
