@@ -9,40 +9,40 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import java.time.Instant
 
-interface GetBaseDTo {
-    val id: String?
-    companion object{
+@Serializable
+abstract class GetBaseDTo {
+    @SerialName("_id")
+    @Serializable(with = ObjectIdSerializer::class)
+    val id: String? = null
+
+    companion object {
         val json = Json {
             ignoreUnknownKeys = true
             encodeDefaults = true
         }
-        inline fun <reified T>Document.toGetDTO(): T = json.decodeFromString<T>(this.toJson())
+
+        inline fun <reified T> Document.toGetDTO(): T = json.decodeFromString<T>(this.toJson())
     }
 }
 
 @Serializable
 data class ShyamPremiGroupGetDTO(
-    @SerialName("_id")
-    @Serializable(with = ObjectIdSerializer::class)
-    override val id: String? = null,
     val name: String? = null,
     val createdDate: String? = null,
     val joiningFee: Double? = null,
     val frequency: String? = null
-) : GetBaseDTo
+) : GetBaseDTo()
 
 @Serializable
-sealed class InsertBaseDTO{
+sealed class InsertBaseDTO {
     abstract fun InsertBaseDTO.toDocument(): Document
 }
 
 @Serializable
 data class ShyamPremiGroupInsertDTO @OptIn(ExperimentalSerializationApi::class) constructor(
     val name: String,
-    @EncodeDefault
-    val joiningFee: Double = 0.0,
-    @EncodeDefault
-    val frequency: String = if (joiningFee == 0.0) "never" else "monthly",
+    @EncodeDefault val joiningFee: Double = 0.0,
+    @EncodeDefault val frequency: String = if (joiningFee == 0.0) "never" else "monthly",
     @EncodeDefault
     val createdDate: String = Instant.now().toUTCString(),
 ) : InsertBaseDTO() {
@@ -62,7 +62,7 @@ data class ShyamPremiGroupUpdateDTO(
     val createdDate: String,
     val joiningFee: Double,
     val frequency: String
-) : UpdateBaseDTO{
+) : UpdateBaseDTO {
     override fun UpdateBaseDTO.toUpdates(): Bson {
         return Updates.combine(
             Updates.set("name", name),
