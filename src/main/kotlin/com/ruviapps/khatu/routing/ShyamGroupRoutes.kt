@@ -1,8 +1,10 @@
 package com.ruviapps.khatu.routing
 
+import com.ruviapps.khatu.domain.entity.Car
+import com.ruviapps.khatu.domain.entity.CarService
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmUpdateDTO
-import com.ruviapps.khatu.service.ShyamGroupService
+import com.ruviapps.khatu.service.ShyamGroupCrudService
 import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -12,7 +14,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 fun Route.shyamGroupRoutes(
-    service: ShyamGroupService
+    service: ShyamGroupCrudService
 ) {
     //Create Group
     post {
@@ -80,4 +82,27 @@ fun Route.shyamGroupRoutes(
         else
             call.respond(HttpStatusCode.NotModified)
     }
+}
+
+fun Route.carRoutes(
+    service: CarService
+) {
+    //Create Car
+    post {
+        try {
+            val request = call.receive<Car>()
+            val inserted = service.insert(request) ?: return@post call.respond(HttpStatusCode.Conflict)
+            call.respond(inserted)
+        } catch (e: NoTransformationFoundException) {
+            call.respond(HttpStatusCode.BadRequest)
+        }
+    }
+    get {
+        val cars = service.findAll()
+        if (cars?.isNotEmpty() == true)
+            call.respond(HttpStatusCode.Found, cars)
+        else
+            call.respond(HttpStatusCode.NotFound)
+    }
+
 }

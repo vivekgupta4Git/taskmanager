@@ -1,9 +1,9 @@
 package com.ruviapps.khatu.domain.entity
 
+import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Updates
-import com.ruviapps.calm.CalmGetDTO
-import com.ruviapps.calm.CalmInsertDTO
-import com.ruviapps.calm.CalmUpdateDTO
+import com.ruviapps.calm.*
+import com.ruviapps.calm.CalmGetDTO.Companion.toGetDTO
 import com.ruviapps.khatu.util.toUTCString
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -45,9 +45,37 @@ data class ShyamPremiGroupCalmInsertDTO @OptIn(ExperimentalSerializationApi::cla
     @EncodeDefault val frequency: String = if (joiningFee == 0.0) "never" else "monthly",
     @EncodeDefault
     val createdDate: String = Instant.now().toUTCString(),
-) : CalmInsertDTO() {
+) : CalmInsertDTO {
 
     override fun CalmInsertDTO.toDocument(): Document {
         return Document.parse(jsonForInsertDTO().encodeToString(this))
     }
 }
+
+
+@Serializable
+data class Car(
+    val name : String? = null,
+    val model : String? = null,
+    val color : String? = null
+): CalmModel(){
+    override fun CalmUpdateDTO.toUpdates(): Bson {
+        return Updates.combine(
+            Updates.set("name", name),
+            Updates.set("model", model),
+            Updates.set("color", color)
+        )
+    }
+    override fun CalmInsertDTO.toDocument(): Document {
+        return Document.parse(jsonForInsertDTO().encodeToString(this))
+    }
+}
+
+
+class CarRepository(mongoDatabase: MongoDatabase) : CalmRepository<Car>(mongoDatabase,"MyCars"){
+    override fun Car.insertDtoToDocument(): Document = toDocument()
+    override fun Car.toUpdateBson(): Bson = toUpdates()
+    override fun Document.documentToGetDTO(): Car = toGetDTO()
+}
+
+class CarService(carRepository: CarRepository) : CalmService<Car>(carRepository)

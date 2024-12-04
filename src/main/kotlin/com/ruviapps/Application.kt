@@ -1,12 +1,14 @@
 package com.ruviapps
 
+import com.ruviapps.khatu.domain.entity.CarRepository
+import com.ruviapps.khatu.domain.entity.CarService
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
-import com.ruviapps.khatu.domain.repository.ShyamGroupRepositoryImpl
+import com.ruviapps.khatu.domain.repository.ShyamGroupCrudRepositoryImpl
 import com.ruviapps.khatu.plugins.configureDatabases
 import com.ruviapps.khatu.plugins.configureRouting
 import com.ruviapps.khatu.plugins.configureSecurity
 import com.ruviapps.khatu.plugins.configureSerialization
-import com.ruviapps.khatu.service.ShyamGroupService
+import com.ruviapps.khatu.service.ShyamGroupCrudService
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -23,9 +25,11 @@ fun Application.module() {
     configureSerialization()
     val database = configureDatabases()
     configureSecurity()
-    val repository = ShyamGroupRepositoryImpl(database)
-    val service = ShyamGroupService(repository)
-    configureRouting(service)
+    val repository = ShyamGroupCrudRepositoryImpl(database)
+    val service = ShyamGroupCrudService(repository)
+    val carRepository = CarRepository(database)
+    val carService = CarService(carRepository)
+    configureRouting(service,carService)
     configureStatusPage()
     configureShyamGroupRequestValidation()
 }

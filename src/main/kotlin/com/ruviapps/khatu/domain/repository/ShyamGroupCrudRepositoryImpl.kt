@@ -1,7 +1,7 @@
 package com.ruviapps.khatu.domain.repository
 
 import com.mongodb.client.MongoDatabase
-import com.ruviapps.calm.CalmRepository
+import com.ruviapps.calm.CalmCrudRepository
 import com.ruviapps.calm.CalmGetDTO.Companion.toGetDTO
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmGetDTO
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
@@ -9,9 +9,9 @@ import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmUpdateDTO
 import org.bson.Document
 import org.bson.conversions.Bson
 
-class ShyamGroupRepositoryImpl(
+class ShyamGroupCrudRepositoryImpl(
     database: MongoDatabase
-) :CalmRepository<
+) :CalmCrudRepository<
         ShyamPremiGroupCalmInsertDTO,
         ShyamPremiGroupCalmGetDTO,
         ShyamPremiGroupCalmUpdateDTO
