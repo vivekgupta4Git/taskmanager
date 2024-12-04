@@ -39,7 +39,7 @@ interface CalmInsertDTO {
             polymorphic(CalmInsertDTO::class) {
                 //each Insert Dto which are extended from CalmInsertDTO need to explicitly be added here
                 subclass(ShyamPremiGroupCalmInsertDTO::class)
-                //subclass(Car::class)
+                subclass(Car::class)
             }
         }
     }

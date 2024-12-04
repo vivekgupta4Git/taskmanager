@@ -21,6 +21,8 @@ repositories {
 
 dependencies {
     implementation(project(":kolor"))
+    implementation(project(":inflector"))
+    implementation(libs.swagger)
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.mongodb)
     implementation(libs.firebase.auth.provider)

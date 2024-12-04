@@ -3,3 +3,4 @@ plugins {
 }
 rootProject.name = "taskmanager"
 include("kolor")
+include("inflector")

@@ -1,6 +1,11 @@
 package com.ruviapps
 
+import com.ruviapps.khatu.domain.entity.CarRepository
+import com.ruviapps.khatu.domain.entity.CarService
+import com.ruviapps.khatu.domain.repository.ShyamGroupCrudRepositoryImpl
+import com.ruviapps.khatu.plugins.configureDatabases
 import com.ruviapps.khatu.plugins.configureRouting
+import com.ruviapps.khatu.service.ShyamGroupCrudService
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -11,7 +16,11 @@ class ApplicationTest {
     @Test
     fun testRoot() = testApplication {
         application {
-            configureRouting()
+            val database = configureDatabases()
+            configureRouting(shyamGroupService = ShyamGroupCrudService(
+                repository = ShyamGroupCrudRepositoryImpl(database)
+            ), carService = CarService(CarRepository(database))
+            )
         }
         client.get("/").apply {
             assertEquals(HttpStatusCode.OK, status)
