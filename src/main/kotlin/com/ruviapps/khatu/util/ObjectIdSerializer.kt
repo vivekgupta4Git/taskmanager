@@ -11,12 +11,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import org.bson.codecs.kotlinx.BsonDecoder
 
+/**
+ * A custom serializer for ObjectId
+ */
 object ObjectIdSerializer : KSerializer<String> {
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): String {
         return when(decoder){
             is BsonDecoder -> decoder.decodeObjectId().toHexString()
-              //  .decodeBsonValue().asObjectId().value.toHexString()
             is JsonDecoder -> {
                 when(val jsonElement =  decoder.decodeJsonElement()){
                    is JsonObject -> {

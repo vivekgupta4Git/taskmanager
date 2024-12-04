@@ -5,15 +5,12 @@ import com.mongodb.client.FindIterable
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
-import com.ruviapps.khatu.domain.entity.GetBaseDTo
-import com.ruviapps.khatu.domain.entity.InsertBaseDTO
-import com.ruviapps.khatu.domain.entity.UpdateBaseDTO
 import com.ruviapps.khatu.util.getObjectIdAsString
 import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 
-abstract class MongoCrudRepository<INSERT_DTO : InsertBaseDTO, GET_DTO : GetBaseDTo, UPDATE_DTO : UpdateBaseDTO>(
+abstract class CalmRepository<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetDTO, UPDATE_DTO : CalmUpdateDTO>(
     database: MongoDatabase,
     collectionName: String,
 ) {

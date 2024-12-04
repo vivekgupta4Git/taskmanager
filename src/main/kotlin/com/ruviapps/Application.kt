@@ -1,13 +1,12 @@
 package com.ruviapps
 
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
 import com.ruviapps.khatu.domain.repository.ShyamGroupRepositoryImpl
 import com.ruviapps.khatu.plugins.configureDatabases
 import com.ruviapps.khatu.plugins.configureRouting
 import com.ruviapps.khatu.plugins.configureSecurity
 import com.ruviapps.khatu.plugins.configureSerialization
 import com.ruviapps.khatu.service.ShyamGroupService
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -33,7 +32,7 @@ fun Application.module() {
 
 fun Application.configureShyamGroupRequestValidation() {
     install(RequestValidation) {
-        validate<ShyamPremiGroupInsertDTO> { dto ->
+        validate<ShyamPremiGroupCalmInsertDTO> { dto ->
             if (dto.name.isBlank()) {
                 ValidationResult.Invalid("Name cannot be empty")
             } else

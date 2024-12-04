@@ -1,7 +1,7 @@
 package com.ruviapps.khatu.routing
 
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroupInsertDTO
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroupUpdateDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
+import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmUpdateDTO
 import com.ruviapps.khatu.service.ShyamGroupService
 import io.ktor.client.call.*
 import io.ktor.http.*
@@ -17,7 +17,7 @@ fun Route.shyamGroupRoutes(
     //Create Group
     post {
         try {
-            val request = call.receive<ShyamPremiGroupInsertDTO>()
+            val request = call.receive<ShyamPremiGroupCalmInsertDTO>()
             val json = Json {
                 ignoreUnknownKeys = true
                 encodeDefaults = true
@@ -65,7 +65,7 @@ fun Route.shyamGroupRoutes(
     put("/{id}") {
         val id: String = call.parameters["id"]
             ?: return@put call.respond(HttpStatusCode.BadRequest)
-        val group = call.receive<ShyamPremiGroupUpdateDTO>()
+        val group = call.receive<ShyamPremiGroupCalmUpdateDTO>()
         val updated = service.updateGroup(id, group) ?: return@put call.respond(HttpStatusCode.NotModified)
 
         call.respond(
