@@ -1,4 +1,4 @@
-package com.ruviapps.calm
+package com.ruviapps.calm.system
 
 import com.ruviapps.khatu.domain.entity.Car
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO

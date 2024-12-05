@@ -1,4 +1,4 @@
-package com.ruviapps.calm
+package com.ruviapps.calm.system
 
 import org.bson.conversions.Bson
 

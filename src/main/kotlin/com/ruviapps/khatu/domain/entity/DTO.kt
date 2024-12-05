@@ -3,7 +3,10 @@ package com.ruviapps.khatu.domain.entity
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Updates
 import com.ruviapps.calm.*
-import com.ruviapps.calm.CalmGetDTO.Companion.toGetDTO
+import com.ruviapps.calm.system.CalmGetDTO
+import com.ruviapps.calm.system.CalmGetDTO.Companion.toGetDTO
+import com.ruviapps.calm.system.CalmInsertDTO
+import com.ruviapps.calm.system.CalmUpdateDTO
 import com.ruviapps.khatu.util.toUTCString
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -38,8 +41,9 @@ data class ShyamPremiGroupCalmUpdateDTO(
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class ShyamPremiGroupCalmInsertDTO @OptIn(ExperimentalSerializationApi::class) constructor(
+data class ShyamPremiGroupCalmInsertDTO  constructor(
     val name: String,
     @EncodeDefault val joiningFee: Double = 0.0,
     @EncodeDefault val frequency: String = if (joiningFee == 0.0) "never" else "monthly",

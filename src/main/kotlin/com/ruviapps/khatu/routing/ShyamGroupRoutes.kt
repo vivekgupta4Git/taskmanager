@@ -20,11 +20,6 @@ fun Route.shyamGroupRoutes(
     post {
         try {
             val request = call.receive<ShyamPremiGroupCalmInsertDTO>()
-            val json = Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true
-            }
-            println("request. fee frequency  = ${json.encodeToString(request)}")
             val inserted = service.createGroup(request) ?: return@post call.respond(HttpStatusCode.Conflict)
             call.respond(inserted)
         } catch (e: NoTransformationFoundException) {

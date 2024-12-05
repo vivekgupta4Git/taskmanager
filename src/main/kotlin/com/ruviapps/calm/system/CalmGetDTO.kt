@@ -1,4 +1,4 @@
-package com.ruviapps.calm
+package com.ruviapps.calm.system
 
 import com.ruviapps.khatu.util.ObjectIdSerializer
 import kotlinx.serialization.SerialName

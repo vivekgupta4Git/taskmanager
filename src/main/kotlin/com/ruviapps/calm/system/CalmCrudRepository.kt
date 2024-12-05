@@ -1,4 +1,4 @@
-package com.ruviapps.calm
+package com.ruviapps.calm.system
 
 import com.mongodb.client.AggregateIterable
 import com.mongodb.client.FindIterable
