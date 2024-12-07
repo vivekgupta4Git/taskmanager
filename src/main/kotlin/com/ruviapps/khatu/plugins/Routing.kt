@@ -29,7 +29,7 @@ fun Application.configureRouting(
         route("api.json") {
             openApiSpec()
         }
-        route("/api/token") {
+        /*route("/api/token") {
             get {
                 val secret = environment.config.property("ktor.jwt.secret").getString()
                 val issuer = environment.config.property("ktor.jwt.issuer").getString()
@@ -44,7 +44,7 @@ fun Application.configureRouting(
             }
 
 
-        }
+        }*/
         /*authenticate("auth-jwt") {
             route("/api/group") {
                 shyamGroupRoutes(shyamGroupService)

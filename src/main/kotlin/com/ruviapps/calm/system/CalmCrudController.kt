@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
+import org.bson.Document
 
 data class ModuleName(val name: String, val usePlural: Boolean = true)
 
@@ -31,19 +32,18 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     abstract fun updateDtoTypeOf(): TypeInfo
     abstract fun getDtoTypeOf(): TypeInfo
     abstract fun getListDtoTypeOf(): TypeInfo
-    fun registerRoutes(route: Route) = with(route) {
+    fun defaultRoutes(route: Route) = with(route) {
         findAll()
         findById()
+        findWhere()
         insert()
         updateOne()
         deleteOne()
-        deleteAll()
-        findWhere()
         deleteWhere()
-        additionalRoutesForRegistration()
+        deleteAll()
     }
 
-    abstract fun additionalRoutesForRegistration()
+    abstract fun customRoutes(route: Route)
 
     fun Route.findAll() = get(pluralizeName, {
         description = "Find all the $pluralizeName in the database"
@@ -88,7 +88,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     fun Route.updateOne() = put("${pluralizeName}/{id}", {
         description = "Update $pluralizeName by id"
         request { queryParameter<String>("id") }
-        request { body<CalmUpdateDTO>() }
+        request { body(KTypeDescriptor(updateDtoTypeOf().kotlinType!!)) }
         response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
@@ -160,10 +160,11 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         val field = call.parameters["field"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val filter = Filters.eq(field, value)
-        val filteredModels = service.findWhere { filter }
+        val filteredModels = service.findWhere { filter }.map { documentToDto(it) }.toList()
         if (filteredModels.toList().isEmpty())
             call.respond(HttpStatusCode.NotFound, "Not found",typeInfo<String>())
         else
-            call.respond(HttpStatusCode.OK, filteredModels)
+            call.respond(HttpStatusCode.OK, filteredModels,getListDtoTypeOf())
     }
+    abstract fun documentToDto(document: Document): GET_DTO
 }

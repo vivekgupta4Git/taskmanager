@@ -1,5 +1,7 @@
 package com.ruviapps.khatu.domain.entity
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Updates
 import com.ruviapps.calm.*
@@ -8,6 +10,8 @@ import com.ruviapps.calm.system.CalmGetDTO.Companion.toGetDTO
 import com.ruviapps.calm.system.CalmInsertDTO
 import com.ruviapps.calm.system.CalmUpdateDTO
 import com.ruviapps.khatu.util.toUTCString
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -16,6 +20,9 @@ import kotlinx.serialization.encodeToString
 import org.bson.Document
 import org.bson.conversions.Bson
 import java.time.Instant
+import java.util.*
+import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.ktor.http.*
 
 @Serializable
 data class ShyamPremiGroupCalmGetDTO(
@@ -89,7 +96,7 @@ class CarController(service: CarService) : CalmController<Car>(
     modelName = "car",
     service = service,
     makePluralize = true,
-    authenticateRoute = false
+    authenticateRoute = true
 ){
     override fun insertDtoTypeOf(): TypeInfo  = typeInfo<Car>()
     override fun updateDtoTypeOf(): TypeInfo = typeInfo<Car>()
@@ -99,9 +106,34 @@ class CarController(service: CarService) : CalmController<Car>(
 
     override fun getListDtoTypeOf(): TypeInfo = typeInfo<List<Car>>()
 
-    override fun additionalRoutesForRegistration() {}
+    override fun customRoutes(route: Route) {
+        with(route){
+            route("/api") {
+                get("token",{
+                    description = "Get token"
+                    response { HttpStatusCode.OK to { body<Map<String,String>>() } }
+                }) {
+                    val secret = environment.config.property("ktor.jwt.secret").getString()
+                    val issuer = environment.config.property("ktor.jwt.issuer").getString()
+                    val audience = environment.config.property("ktor.jwt.audience").getString()
+                    val expiry = environment.config.property("ktor.jwt.expiry").getString().toLong()
+                    val token = JWT.create()
+                        .withAudience(audience)
+                        .withIssuer(issuer)
+                        .withExpiresAt(Date(System.currentTimeMillis() + expiry)) // 1 day
+                        .sign(Algorithm.HMAC256(secret))
+                    call.respond(HttpStatusCode.OK,hashMapOf("token" to token))
+                }
+            }
+        }
+    }
+
+    override fun documentToDto(document: Document): Car {
+        return document.toGetDTO()
+    }
 }
 
 class CarRouter(
+    basePath : String,
     controller: CalmController<Car>
-) : CalmRouter<Car>( controller = controller)
+) : CalmRouter<Car>( controller = controller, basePath = basePath)

@@ -26,8 +26,9 @@ fun Application.module() {
     val carRepository = CarRepository(database)
     val carService = CarService(carRepository)
     val carController = CarController(carService)
-    val carRouter = CarRouter(carController)
-    carRouter.routeAll(this)
+    val carRouter = CarRouter("",carController)
+    carRouter.registerDefaultRoutesWithAuth(this)
+    carRouter.addCustomRoutes(this)
     configureRouting(service,carService)
 
     configureStatusPage()
