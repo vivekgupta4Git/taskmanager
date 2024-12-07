@@ -2,16 +2,16 @@ package com.ruviapps.calm.system
 
 import Inflector
 import com.mongodb.client.model.Filters
-import io.github.smiley4.ktorswaggerui.dsl.get
-import io.github.smiley4.ktorswaggerui.dsl.post
-import io.github.smiley4.ktorswaggerui.dsl.put
-import io.github.smiley4.ktorswaggerui.dsl.delete
+import io.github.smiley4.ktorswaggerui.dsl.routing.delete
+import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktorswaggerui.dsl.routing.post
+import io.github.smiley4.ktorswaggerui.dsl.routing.put
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
+import kotlin.reflect.full.createType
 
 data class ModuleName(val name: String, val usePlural: Boolean = true)
 
@@ -30,7 +30,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     abstract fun getListDtoTypeOf(): TypeInfo
 
     fun Route.findAll() = get("/$pluralizeName", {
-        response { HttpStatusCode.OK to { body(getListDtoTypeOf().type) } }
+        response { HttpStatusCode.OK to { body<List<CalmGetDTO>>() } }
     }) {
         val result = service.findAll()
         if (result?.isNotEmpty() == true)
@@ -41,7 +41,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
 
     fun Route.findById() = get("/$pluralizeName/{id}", {
         response { HttpStatusCode.BadRequest to { body<String>() } }
-        response { HttpStatusCode.Found to { body(getDtoTypeOf().type) } }
+        response { HttpStatusCode.Found to { body( getDtoTypeOf().type.createType()) } }
         response { HttpStatusCode.NotFound to { body<String>() } }
     }) {
         val id: String = call.parameters["id"]
@@ -54,39 +54,39 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     }
 
     fun Route.insert() = post("/${pluralizeName}", {
-        request { body(insertDtoTypeOf().type) }
-        response { HttpStatusCode.Created to { body(getDtoTypeOf().type) } }
+        request { body<CalmInsertDTO>() }
+        response { HttpStatusCode.Created to { body( getDtoTypeOf().type.createType()) } }
     }) {
         val requestModel = call.receive<INSERT_DTO>(insertDtoTypeOf())
         service.insert(requestModel)
-        call.respond(HttpStatusCode.Created, getListDtoTypeOf().type)
+        call.respond(HttpStatusCode.Created, getDtoTypeOf().type)
     }
 
 
     fun Route.updateOne() = put("/${pluralizeName}/{id}", {
         request { queryParameter<String>("id") }
-        request { body(updateDtoTypeOf().type) }
-        response { HttpStatusCode.Accepted to { body(getDtoTypeOf().type) } }
+        request { body<CalmUpdateDTO>() }
+        response { HttpStatusCode.Accepted to { body( getDtoTypeOf().type.createType()) } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
         val id = call.request.queryParameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
         val model = call.receive<UPDATE_DTO>(updateDtoTypeOf())
         service.updateById(id, model)
-        call.respond(HttpStatusCode.Accepted, getListDtoTypeOf().type)
+        call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
     }
 
     fun Route.deleteOne() = delete("/${pluralizeName}", {
         request { queryParameter<String>("id") }
-        response { HttpStatusCode.Accepted to { body(getDtoTypeOf().type) } }
+        response { HttpStatusCode.Accepted to { body( getDtoTypeOf().type.createType()) } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
         val id = call.request.queryParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         service.deleteById(id)
-        call.respond(HttpStatusCode.Accepted, getListDtoTypeOf().type)
+        call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
     }
 
     fun Route.deleteAll() = delete("/${pluralizeName}", {
-        response { HttpStatusCode.Accepted to { body(getDtoTypeOf().type) } }
+        response { HttpStatusCode.Accepted to { body( getDtoTypeOf().type.createType()) } }
     }) {
         service.deleteAll()
         call.respond(HttpStatusCode.Accepted, getListDtoTypeOf().type)
@@ -110,7 +110,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.Accepted to { body(getDtoTypeOf().type) } }
+        response { HttpStatusCode.Accepted to { body( getDtoTypeOf().type.createType()) } }
     }) {
         val field = call.parameters["field"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
@@ -119,7 +119,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         if (deleteRowCount == 0L)
             call.respond(HttpStatusCode.NotFound, typeInfo<String>())
         else
-            call.respond(HttpStatusCode.Accepted, getListDtoTypeOf().type)
+            call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
     }
 
     fun Route.findWhere() = put("/${pluralizeName}/{field}/{value}", {
@@ -127,7 +127,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.Found to { body(getDtoTypeOf().type) } }
+        response { HttpStatusCode.Found to { body( getDtoTypeOf().type.createType()) } }
     }) {
         val field = call.parameters["field"] ?: return@put call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@put call.respond(HttpStatusCode.BadRequest)

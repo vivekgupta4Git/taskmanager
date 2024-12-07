@@ -6,6 +6,8 @@ import com.ruviapps.khatu.domain.entity.CarService
 import com.ruviapps.khatu.routing.carRoutes
 import com.ruviapps.khatu.routing.shyamGroupRoutes
 import com.ruviapps.khatu.service.ShyamGroupCrudService
+import io.github.smiley4.ktorswaggerui.routing.openApiSpec
+import io.github.smiley4.ktorswaggerui.routing.swaggerUI
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -17,6 +19,16 @@ fun Application.configureRouting(
     carService: CarService
 ) {
     routing {
+        // Create a route for the swagger-ui using the openapi-spec at "/api.json".
+        // This route will not be included in the spec.
+        route("swagger") {
+            swaggerUI("/api.json")
+        }
+        // Create a route for the openapi-spec file.
+        // This route will not be included in the spec.
+        route("api.json") {
+            openApiSpec()
+        }
         route("/api/token") {
             get {
                 val secret = environment.config.property("ktor.jwt.secret").getString()

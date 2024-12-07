@@ -4,10 +4,7 @@ import com.ruviapps.khatu.domain.entity.CarRepository
 import com.ruviapps.khatu.domain.entity.CarService
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
 import com.ruviapps.khatu.domain.repository.ShyamGroupCrudRepositoryImpl
-import com.ruviapps.khatu.plugins.configureDatabases
-import com.ruviapps.khatu.plugins.configureRouting
-import com.ruviapps.khatu.plugins.configureSecurity
-import com.ruviapps.khatu.plugins.configureSerialization
+import com.ruviapps.khatu.plugins.*
 import com.ruviapps.khatu.service.ShyamGroupCrudService
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -23,6 +20,7 @@ fun Application.module() {
     // configureSockets()
     configureRequestLogging()
     configureSerialization()
+    registerSwagger()
     val database = configureDatabases()
     configureSecurity()
     val repository = ShyamGroupCrudRepositoryImpl(database)
