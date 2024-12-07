@@ -17,10 +17,7 @@ class ApplicationTest {
     fun testRoot() = testApplication {
         application {
             val database = configureDatabases()
-            configureRouting(shyamGroupService = ShyamGroupCrudService(
-                repository = ShyamGroupCrudRepositoryImpl(database)
-            ), carService = CarService(CarRepository(database))
-            )
+            configureRouting()
         }
         client.get("/").apply {
             assertEquals(HttpStatusCode.OK, status)

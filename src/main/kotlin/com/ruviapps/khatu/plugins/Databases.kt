@@ -41,10 +41,10 @@ fun Application.connectToMongoDB(): MongoDatabase {
     println("Successfully connected to MongoDB!--".green())
 
 
-    monitor.subscribe(ApplicationStopped) {
+    /*monitor.subscribe(ApplicationStopped) {
         mongoClient.close()
         println("MongoClient Closed".red())
-    }
+    }*/
 
     return database
 }

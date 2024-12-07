@@ -7,7 +7,11 @@ import com.ruviapps.calm.system.CalmGetDTO
 import com.ruviapps.calm.system.CalmGetDTO.Companion.toGetDTO
 import com.ruviapps.calm.system.CalmInsertDTO
 import com.ruviapps.calm.system.CalmUpdateDTO
+import com.ruviapps.khatu.plugins.CalmRouter
+import com.ruviapps.khatu.util.ListWrapperDto
 import com.ruviapps.khatu.util.toUTCString
+import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -83,3 +87,23 @@ class CarRepository(mongoDatabase: MongoDatabase) : CalmRepository<Car>(mongoDat
 }
 
 class CarService(carRepository: CarRepository) : CalmService<Car>(carRepository)
+
+class CarController(carService: CarService) : CalmController<Car>(
+    service = carService,
+    modelName = "car",
+    makePluralize = false,
+    authenticateRoute = true,
+){
+    override fun Route.additionalRoutesForRegistration() {}
+    override fun insertListDtoTypeOf(): TypeInfo  = typeInfo<ListWrapperDto<Car>>()
+    override fun insertDtoTypeOf(): TypeInfo = typeInfo<Car>()
+    override fun updateDtoTypeOf(): TypeInfo  = typeInfo<Car>()
+    override fun getDtoTypeOf(): TypeInfo = typeInfo<Car>()
+    override fun getListDtoTypeOf(): TypeInfo = typeInfo<ListWrapperDto<Car>>()
+}
+
+class CarRouter(
+    carController: CarController
+) : CalmRouter<Car>(controller = carController){
+
+}

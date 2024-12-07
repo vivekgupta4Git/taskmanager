@@ -4,9 +4,8 @@ ktor-version = "3.0.1"
 logback-version = "1.4.14"
 mongo-version = "4.10.2"
 bson-kotlinx = "5.2.0"
-swagger-version = "2.2.0"
 [libraries]
-swagger = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "swagger-version" }
+ktor-server-cors = {module = "io.ktor:ktor-server-cors-jvm", version.ref = "ktor-version" }
 ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "kotlin-version" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor-version" }
 ktor-server-auth-jvm = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor-version" }
@@ -45,6 +44,7 @@ ktor = [
     "ktor-server-config-yaml",
     "ktor-server-request-validation",
     "ktor-server-test-host",
-    "ktor-status-page",]
+    "ktor-status-page",
+    "ktor-server-cors"]
 
 mongodb = ["mongodb-driver-core", "mongodb-driver-sync", "bson", "bson-kotlinx"]

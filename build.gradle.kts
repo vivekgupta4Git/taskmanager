@@ -22,7 +22,10 @@ repositories {
 dependencies {
     implementation(project(":kolor"))
     implementation(project(":inflector"))
-    implementation(libs.swagger)
+    implementation("io.github.smiley4:ktor-swagger-ui:4.1.0") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+        exclude(group = "org.yaml", module = "snakeyaml")
+    }
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.mongodb)
     implementation(libs.firebase.auth.provider)
