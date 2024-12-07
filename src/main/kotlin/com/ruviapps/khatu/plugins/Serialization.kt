@@ -19,9 +19,9 @@ fun Application.configureSerialization() {
             contentType = ContentType.Application.Json
         )
     }
-    routing {
+    /*routing {
         get("/json/kotlinx-serialization") {
             call.respond(mapOf("hello" to "world"))
         }
-    }
+    }*/
 }

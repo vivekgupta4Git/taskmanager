@@ -1,8 +1,6 @@
 package com.ruviapps
 
-import com.ruviapps.khatu.domain.entity.CarRepository
-import com.ruviapps.khatu.domain.entity.CarService
-import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
+import com.ruviapps.khatu.domain.entity.*
 import com.ruviapps.khatu.domain.repository.ShyamGroupCrudRepositoryImpl
 import com.ruviapps.khatu.plugins.*
 import com.ruviapps.khatu.service.ShyamGroupCrudService
@@ -27,7 +25,11 @@ fun Application.module() {
     val service = ShyamGroupCrudService(repository)
     val carRepository = CarRepository(database)
     val carService = CarService(carRepository)
+    val carController = CarController(carService)
+    val carRouter = CarRouter(carController)
+    carRouter.routeAll(this)
     configureRouting(service,carService)
+
     configureStatusPage()
     configureShyamGroupRequestValidation()
 }

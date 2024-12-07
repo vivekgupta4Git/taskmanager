@@ -45,13 +45,13 @@ fun Application.configureRouting(
 
 
         }
-        authenticate("auth-jwt") {
+        /*authenticate("auth-jwt") {
             route("/api/group") {
                 shyamGroupRoutes(shyamGroupService)
             }
             route("/api/car") {
                 carRoutes(carService)
             }
-        }
+        }*/
     }
 }
