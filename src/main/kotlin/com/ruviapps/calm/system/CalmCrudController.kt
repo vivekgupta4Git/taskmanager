@@ -12,8 +12,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
-import kotlin.reflect.full.createType
-import kotlin.reflect.typeOf
 
 data class ModuleName(val name: String, val usePlural: Boolean = true)
 
@@ -48,43 +46,47 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     abstract fun additionalRoutesForRegistration()
 
     fun Route.findAll() = get(pluralizeName, {
+        description = "Find all the $pluralizeName in the database"
+        response { HttpStatusCode.NotFound to { } }
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getListDtoTypeOf().kotlinType!!)) } }
     }) {
         val result = service.findAll()
         if (result?.isNotEmpty() == true)
         {
-            println(result)
-            call.respond(HttpStatusCode.Found,result)
+            call.respond(HttpStatusCode.OK, result,getListDtoTypeOf() )
         }
         else
-            call.respond(HttpStatusCode.OK, getListDtoTypeOf().type)
+            call.respond(HttpStatusCode.NotFound, emptyList<GET_DTO>() ,getListDtoTypeOf())
     }
 
     fun Route.findById() = get("$pluralizeName/{id}", {
+        description = "Find $pluralizeName by id"
         response { HttpStatusCode.BadRequest to { body<String>() } }
-        response { HttpStatusCode.Found to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.NotFound to { body<String>() } }
     }) {
         val id: String = call.parameters["id"]
             ?: return@get call.respond(HttpStatusCode.BadRequest, typeInfo<String>())
         val result = service.findById(id)
         if (result != null)
-            call.respond(HttpStatusCode.Found, getListDtoTypeOf().type)
+            call.respond(HttpStatusCode.OK,result, getListDtoTypeOf())
         else
-            call.respond(HttpStatusCode.NotFound, typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound, "Not Found",typeInfo<String>())
     }
 
     fun Route.insert() = post(pluralizeName, {
+        description = "Insert $pluralizeName into the database"
         request { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) }
         response { HttpStatusCode.Created to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
     }) {
         val requestModel = call.receive<INSERT_DTO>(insertDtoTypeOf())
-        service.insert(requestModel)
-        call.respond(HttpStatusCode.Created, getDtoTypeOf().type)
+        val insertedDto = service.insert(requestModel)
+        call.respond(HttpStatusCode.Created,insertedDto, getDtoTypeOf())
     }
 
 
     fun Route.updateOne() = put("${pluralizeName}/{id}", {
+        description = "Update $pluralizeName by id"
         request { queryParameter<String>("id") }
         request { body<CalmUpdateDTO>() }
         response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
@@ -92,28 +94,31 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     }) {
         val id = call.request.queryParameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
         val model = call.receive<UPDATE_DTO>(updateDtoTypeOf())
-        service.updateById(id, model)
-        call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
+        val updatedDto  = service.updateById(id, model)
+        call.respond(HttpStatusCode.Accepted,updatedDto, getDtoTypeOf())
     }
 
-    fun Route.deleteOne() = delete(pluralizeName, {
+    fun Route.deleteOne() = delete("${pluralizeName}/{id}", {
+        description = "Delete $pluralizeName by id"
         request { queryParameter<String>("id") }
         response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
         val id = call.request.queryParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-        service.deleteById(id)
-        call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
+        val deleted = service.deleteById(id)
+        call.respond(HttpStatusCode.Accepted,deleted, getDtoTypeOf())
     }
 
     fun Route.deleteAll() = delete(pluralizeName, {
+        description = "Delete all $pluralizeName"
         response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
     }) {
-        service.deleteAll()
-        call.respond(HttpStatusCode.Accepted, getListDtoTypeOf().type)
+        val deletedCount = service.deleteAll()
+        call.respond(HttpStatusCode.Accepted,deletedCount, typeInfo<Long>())
     }
 
     fun Route.insertMany() = post(pluralizeName, {
+        description = "Insert many $pluralizeName into the database"
         request { body<List<INSERT_DTO>>() }
         response { HttpStatusCode.Created to { body<List<INSERT_DTO>>() } }
         response { HttpStatusCode.InternalServerError to { body<String>() } }
@@ -121,12 +126,13 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         val requestModel: List<INSERT_DTO> = call.receive(insertDtoTypeOf())
         val result = service.insertMany(requestModel)
         if (result?.isNotEmpty() == true)
-            call.respond(HttpStatusCode.Created, getListDtoTypeOf().type)
+            call.respond(HttpStatusCode.Created,result, getListDtoTypeOf())
         else
             call.respond(HttpStatusCode.InternalServerError)
     }
 
     fun Route.deleteWhere() = delete("${pluralizeName}/{field}/{value}", {
+        description = "Delete by field and value"
         request { queryParameter<String>("field") }
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
@@ -138,27 +144,26 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         val filter = Filters.eq(field, value)
         val deleteRowCount = service.deleteWhere { filter }
         if (deleteRowCount == 0L)
-            call.respond(HttpStatusCode.NotFound, typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound,"Not found", typeInfo<String>())
         else
-            call.respond(HttpStatusCode.Accepted, getDtoTypeOf().type)
+            call.respond(HttpStatusCode.Accepted,deleteRowCount, typeInfo<Long>())
     }
 
-    fun Route.findWhere() = put("${pluralizeName}/{field}/{value}", {
+    fun Route.findWhere() = get("${pluralizeName}/{field}/{value}", {
+        description = "Find by field and value"
         request { queryParameter<String>("field") }
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.Found to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
     }) {
-        val field = call.parameters["field"] ?: return@put call.respond(HttpStatusCode.BadRequest)
-        val value = call.parameters["value"] ?: return@put call.respond(HttpStatusCode.BadRequest)
+        val field = call.parameters["field"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+        val value = call.parameters["value"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val filter = Filters.eq(field, value)
         val filteredModels = service.findWhere { filter }
         if (filteredModels.toList().isEmpty())
-            call.respond(HttpStatusCode.NotFound, typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound, "Not found",typeInfo<String>())
         else
-            call.respond(HttpStatusCode.Found, getListDtoTypeOf().type)
+            call.respond(HttpStatusCode.OK, filteredModels)
     }
-
 }
-
