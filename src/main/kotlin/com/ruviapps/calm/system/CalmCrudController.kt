@@ -47,41 +47,49 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
 
     fun Route.findAll() = get(pluralizeName, {
         description = "Find all the $pluralizeName in the database"
-        response { HttpStatusCode.NotFound to { } }
+        response { HttpStatusCode.OK to { body<ArrayList<CalmGetDTO>>() } }
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getListDtoTypeOf().kotlinType!!)) } }
     }) {
         val result = service.findAll()
-        if (result?.isNotEmpty() == true)
-        {
-            call.respond(HttpStatusCode.OK, result,getListDtoTypeOf() )
+        if (result?.isNotEmpty() == true) {
+            call.respond(HttpStatusCode.OK, result, getListDtoTypeOf())
+        } else {
+            call.respond(HttpStatusCode.OK, emptyList<GET_DTO>(), getListDtoTypeOf())
         }
-        else
-            call.respond(HttpStatusCode.NotFound, emptyList<GET_DTO>() ,getListDtoTypeOf())
     }
 
     fun Route.findById() = get("$pluralizeName/{id}", {
         description = "Find $pluralizeName by id"
+        request { queryParameter<String>("id") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.NotFound to { body<String>() } }
     }) {
         val id: String = call.parameters["id"]
-            ?: return@get call.respond(HttpStatusCode.BadRequest, typeInfo<String>())
+            ?: return@get call.respond(HttpStatusCode.BadRequest, "Bad Request", typeInfo<String>())
         val result = service.findById(id)
         if (result != null)
-            call.respond(HttpStatusCode.OK,result, getListDtoTypeOf())
+            call.respond(HttpStatusCode.OK, result, getListDtoTypeOf())
         else
-            call.respond(HttpStatusCode.NotFound, "Not Found",typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound, "Not Found", typeInfo<String>())
     }
 
     fun Route.insert() = post(pluralizeName, {
         description = "Insert $pluralizeName into the database"
         request { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) }
         response { HttpStatusCode.Created to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.BadRequest to { body<String>() } }
+        response { HttpStatusCode.InternalServerError to { body<String>() } }
     }) {
-        val requestModel = call.receive<INSERT_DTO>(insertDtoTypeOf())
-        val insertedDto = service.insert(requestModel)
-        call.respond(HttpStatusCode.Created,insertedDto, getDtoTypeOf())
+        try {
+            val requestModel = call.receive<INSERT_DTO>(insertDtoTypeOf())
+            val insertedDto = service.insert(requestModel)
+            call.respond(HttpStatusCode.Created, insertedDto, getDtoTypeOf())
+        } catch (ex: ContentTransformationException) {
+            call.respond(HttpStatusCode.BadRequest, ex.message, typeInfo<String>())
+        } catch (ex: MongoException) {
+            call.respond(HttpStatusCode.InternalServerError, ex.message, typeInfo<String>())
+        }
     }
 
 
@@ -89,32 +97,38 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         description = "Update $pluralizeName by id"
         request { queryParameter<String>("id") }
         request { body(KTypeDescriptor(updateDtoTypeOf().kotlinType!!)) }
-        response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
         val id = call.request.queryParameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
         val model = call.receive<UPDATE_DTO>(updateDtoTypeOf())
-        val updatedDto  = service.updateById(id, model)
-        call.respond(HttpStatusCode.Accepted,updatedDto, getDtoTypeOf())
+        val updatedDto = service.updateById(id, model)
+        call.respond(HttpStatusCode.OK, updatedDto, getDtoTypeOf())
     }
 
     fun Route.deleteOne() = delete("${pluralizeName}/{id}", {
         description = "Delete $pluralizeName by id"
         request { queryParameter<String>("id") }
-        response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.NotFound to { body<String>() } }
         response { HttpStatusCode.BadRequest to { body<String>() } }
     }) {
         val id = call.request.queryParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         val deleted = service.deleteById(id)
-        call.respond(HttpStatusCode.Accepted,deleted, getDtoTypeOf())
+        if(deleted == null)
+            call.respond(HttpStatusCode.NotFound, "Not Found", typeInfo<String>())
+        call.respond(HttpStatusCode.OK, deleted, getDtoTypeOf())
     }
 
     fun Route.deleteAll() = delete(pluralizeName, {
         description = "Delete all $pluralizeName"
-        response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.NotFound to { body<String>() } }
     }) {
         val deletedCount = service.deleteAll()
-        call.respond(HttpStatusCode.Accepted,deletedCount, typeInfo<Long>())
+        if(deletedCount == 0L)
+            call.respond(HttpStatusCode.NotFound, "Not Found", typeInfo<String>())
+        call.respond(HttpStatusCode.OK, deletedCount, typeInfo<Long>())
     }
 
     fun Route.insertMany() = post(pluralizeName, {
@@ -126,7 +140,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         val requestModel: List<INSERT_DTO> = call.receive(insertDtoTypeOf())
         val result = service.insertMany(requestModel)
         if (result?.isNotEmpty() == true)
-            call.respond(HttpStatusCode.Created,result, getListDtoTypeOf())
+            call.respond(HttpStatusCode.Created, result, getListDtoTypeOf())
         else
             call.respond(HttpStatusCode.InternalServerError)
     }
@@ -137,16 +151,16 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.Accepted to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
     }) {
         val field = call.parameters["field"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         val filter = Filters.eq(field, value)
         val deleteRowCount = service.deleteWhere { filter }
         if (deleteRowCount == 0L)
-            call.respond(HttpStatusCode.NotFound,"Not found", typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound, "Not found", typeInfo<String>())
         else
-            call.respond(HttpStatusCode.Accepted,deleteRowCount, typeInfo<Long>())
+            call.respond(HttpStatusCode.OK, deleteRowCount, typeInfo<Long>())
     }
 
     fun Route.findWhere() = get("${pluralizeName}/{field}/{value}", {
@@ -162,9 +176,10 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         val filter = Filters.eq(field, value)
         val filteredModels = service.findWhere { filter }.map { documentToDto(it) }.toList()
         if (filteredModels.toList().isEmpty())
-            call.respond(HttpStatusCode.NotFound, "Not found",typeInfo<String>())
+            call.respond(HttpStatusCode.NotFound, "Not found", typeInfo<String>())
         else
-            call.respond(HttpStatusCode.OK, filteredModels,getListDtoTypeOf())
+            call.respond(HttpStatusCode.OK, filteredModels, getListDtoTypeOf())
     }
+
     abstract fun documentToDto(document: Document): GET_DTO
 }

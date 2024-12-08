@@ -21,16 +21,12 @@ fun Application.module() {
     registerSwagger()
     val database = configureDatabases()
     configureSecurity()
-    val repository = ShyamGroupCrudRepositoryImpl(database)
-    val service = ShyamGroupCrudService(repository)
     val carRepository = CarRepository(database)
     val carService = CarService(carRepository)
     val carController = CarController(carService)
-    val carRouter = CarRouter("",carController)
+    val carRouter = CarRouter("v1",carController)
     carRouter.registerDefaultRoutesWithAuth(this)
     carRouter.addCustomRoutes(this)
-    configureRouting(service,carService)
-
     configureStatusPage()
     configureShyamGroupRequestValidation()
 }
