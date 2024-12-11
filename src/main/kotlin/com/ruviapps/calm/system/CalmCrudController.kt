@@ -32,7 +32,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     abstract fun updateDtoTypeOf(): TypeInfo
     abstract fun getDtoTypeOf(): TypeInfo
     abstract fun getListDtoTypeOf(): TypeInfo
-    fun defaultRoutes(route: Route) = with(route) {
+    open fun defaultRoutes(route: Route) = with(route) {
         findAll()
         findById()
         findWhere()
@@ -45,7 +45,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
 
     abstract fun customRoutes(route: Route)
 
-    fun Route.findAll() = get(pluralizeName, {
+    open fun Route.findAll() = get(pluralizeName, {
         description = "Find all the $pluralizeName in the database"
         response { HttpStatusCode.OK to { body<ArrayList<CalmGetDTO>>() } }
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getListDtoTypeOf().kotlinType!!)) } }
@@ -58,7 +58,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         }
     }
 
-    fun Route.findById() = get("$pluralizeName/{id}", {
+    open fun Route.findById() = get("$pluralizeName/{id}", {
         description = "Find $pluralizeName by id"
         request { queryParameter<String>("id") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
@@ -74,7 +74,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
             call.respond(HttpStatusCode.NotFound, "Not Found", typeInfo<String>())
     }
 
-    fun Route.insert() = post(pluralizeName, {
+    open fun Route.insert() = post(pluralizeName, {
         description = "Insert $pluralizeName into the database"
         request { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) }
         response { HttpStatusCode.Created to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
@@ -93,7 +93,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     }
 
 
-    fun Route.updateOne() = put("${pluralizeName}/{id}", {
+    open fun Route.updateOne() = put("${pluralizeName}/{id}", {
         description = "Update $pluralizeName by id"
         request { queryParameter<String>("id") }
         request { body(KTypeDescriptor(updateDtoTypeOf().kotlinType!!)) }
@@ -106,7 +106,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         call.respond(HttpStatusCode.OK, updatedDto, getDtoTypeOf())
     }
 
-    fun Route.deleteOne() = delete("${pluralizeName}/{id}", {
+    open fun Route.deleteOne() = delete("${pluralizeName}/{id}", {
         description = "Delete $pluralizeName by id"
         request { queryParameter<String>("id") }
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
@@ -120,7 +120,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         call.respond(HttpStatusCode.OK, deleted, getDtoTypeOf())
     }
 
-    fun Route.deleteAll() = delete(pluralizeName, {
+    open fun Route.deleteAll() = delete(pluralizeName, {
         description = "Delete all $pluralizeName"
         response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
         response { HttpStatusCode.NotFound to { body<String>() } }
@@ -131,7 +131,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         call.respond(HttpStatusCode.OK, deletedCount, typeInfo<Long>())
     }
 
-    fun Route.insertMany() = post(pluralizeName, {
+    open fun Route.insertMany() = post(pluralizeName, {
         description = "Insert many $pluralizeName into the database"
         request { body<List<INSERT_DTO>>() }
         response { HttpStatusCode.Created to { body<List<INSERT_DTO>>() } }
@@ -145,7 +145,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
             call.respond(HttpStatusCode.InternalServerError)
     }
 
-    fun Route.deleteWhere() = delete("${pluralizeName}/{field}/{value}", {
+    open fun Route.deleteWhere() = delete("${pluralizeName}/{field}/{value}", {
         description = "Delete by field and value"
         request { queryParameter<String>("field") }
         request { queryParameter<String>("value") }
@@ -163,7 +163,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
             call.respond(HttpStatusCode.OK, deleteRowCount, typeInfo<Long>())
     }
 
-    fun Route.findWhere() = get("${pluralizeName}/{field}/{value}", {
+    open fun Route.findWhere() = get("${pluralizeName}/{field}/{value}", {
         description = "Find by field and value"
         request { queryParameter<String>("field") }
         request { queryParameter<String>("value") }
