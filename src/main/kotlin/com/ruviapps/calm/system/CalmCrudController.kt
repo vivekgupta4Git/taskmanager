@@ -69,7 +69,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
             ?: return@get call.respond(HttpStatusCode.BadRequest, "Bad Request", typeInfo<String>())
         val result = service.findById(id)
         if (result != null)
-            call.respond(HttpStatusCode.OK, result, getListDtoTypeOf())
+            call.respond(HttpStatusCode.OK, result, getDtoTypeOf())
         else
             call.respond(HttpStatusCode.NotFound, "Not Found", typeInfo<String>())
     }
@@ -151,7 +151,7 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body<Long>() } }
     }) {
         val field = call.parameters["field"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
@@ -169,13 +169,13 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
         request { queryParameter<String>("value") }
         response { HttpStatusCode.BadRequest to { body<String>() } }
         response { HttpStatusCode.NotFound to { body<String>() } }
-        response { HttpStatusCode.OK to { body(KTypeDescriptor(getDtoTypeOf().kotlinType!!)) } }
+        response { HttpStatusCode.OK to { body(KTypeDescriptor(getListDtoTypeOf().kotlinType!!)) } }
     }) {
         val field = call.parameters["field"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val value = call.parameters["value"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val filter = Filters.eq(field, value)
         val filteredModels = service.findWhere { filter }.map { documentToDto(it) }.toList()
-        if (filteredModels.toList().isEmpty())
+        if (filteredModels.isEmpty())
             call.respond(HttpStatusCode.NotFound, "Not found", typeInfo<String>())
         else
             call.respond(HttpStatusCode.OK, filteredModels, getListDtoTypeOf())
