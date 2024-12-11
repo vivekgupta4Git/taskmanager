@@ -51,7 +51,7 @@ data class ShyamPremiGroupCalmUpdateDTO(
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
-data class ShyamPremiGroupCalmInsertDTO  constructor(
+data class ShyamPremiGroupCalmInsertDTO constructor(
     val name: String,
     @EncodeDefault val joiningFee: Double = 0.0,
     @EncodeDefault val frequency: String = if (joiningFee == 0.0) "never" else "monthly",
@@ -67,10 +67,10 @@ data class ShyamPremiGroupCalmInsertDTO  constructor(
 
 @Serializable
 data class Car(
-    val name : String? = null,
-    val model : String? = null,
-    val color : String? = null
-): CalmModel(){
+    val name: String? = null,
+    val model: String? = null,
+    val color: String? = null
+) : CalmModel() {
     override fun CalmUpdateDTO.toUpdates(): Bson {
         return Updates.combine(
             Updates.set("name", name),
@@ -78,13 +78,14 @@ data class Car(
             Updates.set("color", color)
         )
     }
+
     override fun CalmInsertDTO.toDocument(): Document {
         return Document.parse(jsonForInsertDTO().encodeToString(this))
     }
 }
 
 
-class CarRepository(mongoDatabase: MongoDatabase) : CalmRepository<Car>(mongoDatabase,"MyCars"){
+class CarRepository(mongoDatabase: MongoDatabase) : CalmRepository<Car>(mongoDatabase, "MyCars") {
     override fun Car.insertDtoToDocument(): Document = toDocument()
     override fun Car.toUpdateBson(): Bson = toUpdates()
     override fun Document.documentToGetDTO(): Car = toGetDTO()
@@ -97,8 +98,8 @@ class CarController(service: CarService) : CalmController<Car>(
     service = service,
     makePluralize = true,
     authenticateRoute = true
-){
-    override fun insertDtoTypeOf(): TypeInfo  = typeInfo<Car>()
+) {
+    override fun insertDtoTypeOf(): TypeInfo = typeInfo<Car>()
     override fun updateDtoTypeOf(): TypeInfo = typeInfo<Car>()
 
     override fun getDtoTypeOf(): TypeInfo = typeInfo<Car>()
@@ -107,11 +108,12 @@ class CarController(service: CarService) : CalmController<Car>(
     override fun getListDtoTypeOf(): TypeInfo = typeInfo<List<Car>>()
 
     override fun customRoutes(route: Route) {
-        with(route){
+        with(route) {
             route("/api") {
-                get("token",{
+                get("token", {
+                    tags = listOf("Token")
                     description = "Get token"
-                    response { HttpStatusCode.OK to { body<Map<String,String>>() } }
+                    response { HttpStatusCode.OK to { body<Map<String, String>>() } }
                 }) {
                     val secret = environment.config.property("ktor.jwt.secret").getString()
                     val issuer = environment.config.property("ktor.jwt.issuer").getString()
@@ -122,7 +124,7 @@ class CarController(service: CarService) : CalmController<Car>(
                         .withIssuer(issuer)
                         .withExpiresAt(Date(System.currentTimeMillis() + expiry)) // 1 day
                         .sign(Algorithm.HMAC256(secret))
-                    call.respond(HttpStatusCode.OK,hashMapOf("token" to token))
+                    call.respond(HttpStatusCode.OK, hashMapOf("token" to token))
                 }
             }
         }
@@ -134,6 +136,6 @@ class CarController(service: CarService) : CalmController<Car>(
 }
 
 class CarRouter(
-    basePath : String,
-    controller: CalmController<Car>
-) : CalmRouter<Car>( controller = controller, basePath = basePath)
+    basePath: String,
+    controller: CarController
+) : CalmRouter<Car>(controller = controller, basePath = basePath, tag = "Car Api")

@@ -1,5 +1,6 @@
 package com.ruviapps.calm.system
 
+import com.ruviapps.calm.example.BookModel
 import com.ruviapps.khatu.domain.entity.Car
 import com.ruviapps.khatu.domain.entity.ShyamPremiGroupCalmInsertDTO
 import kotlinx.serialization.json.Json
@@ -40,6 +41,7 @@ interface CalmInsertDTO {
                 //each Insert Dto which are extended from CalmInsertDTO need to explicitly be added here
                 subclass(ShyamPremiGroupCalmInsertDTO::class)
                 subclass(Car::class)
+                subclass(BookModel::class)
             }
         }
     }
