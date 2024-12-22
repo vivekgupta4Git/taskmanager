@@ -48,7 +48,7 @@ class BookRepository(mongoDatabase: MongoDatabase) : CalmRepository<BookModel>(m
 class BookService( bookRepository: BookRepository) : CalmService<BookModel>(bookRepository)
 
 class BookController(bookService: BookService) : CalmController<BookModel>(
-    modelName = "Book",
+    modelName = "book",
     service = bookService,
     makePluralize = true,
     authenticateRoute = true
@@ -59,11 +59,11 @@ class BookController(bookService: BookService) : CalmController<BookModel>(
     override fun getDtoTypeOf(): TypeInfo = typeInfo<BookModel>()
 
     override fun getListDtoTypeOf(): TypeInfo = typeInfo<List<BookModel>>()
-    override fun customRoutes(route: Route) {}
+    override fun customRoutes(route: Route, groupName : String) {}
 
     override fun documentToDto(document: Document): BookModel = document.toGetDTO()
 }
 class BookRouter(
     basePath : String,
     controller: BookController
-) : CalmRouter<BookModel>(basePath, tag = "Book Api",controller)
+) : CalmRouter<BookModel>(basePath, groupName = "Book Api",controller)

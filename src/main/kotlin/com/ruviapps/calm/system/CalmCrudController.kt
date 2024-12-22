@@ -2,6 +2,7 @@ package com.ruviapps.calm.system
 
 import Inflector
 import com.mongodb.client.model.Filters
+import com.ruviapps.khatu.util.fixApiNaming
 import io.github.smiley4.ktorswaggerui.data.KTypeDescriptor
 import io.github.smiley4.ktorswaggerui.dsl.routing.delete
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
@@ -22,28 +23,28 @@ abstract class CalmCrudController<INSERT_DTO : CalmInsertDTO, GET_DTO : CalmGetD
     val authenticateRoute: Boolean = true,
     private val service: CalmCrudService<INSERT_DTO, GET_DTO, UPDATE_DTO>
 ) {
-    private val pluralizeName =
+    val pluralizeName =
         if (moduleName.usePlural)
-            Inflector.instance.pluralize(moduleName.name)
+            Inflector.instance.pluralize(moduleName.name).fixApiNaming()
         else
-            moduleName.name
+            moduleName.name.fixApiNaming()
 
     abstract fun insertDtoTypeOf(): TypeInfo
     abstract fun updateDtoTypeOf(): TypeInfo
     abstract fun getDtoTypeOf(): TypeInfo
     abstract fun getListDtoTypeOf(): TypeInfo
-    open fun defaultRoutes(route: Route,tag : String) = with(route) {
-        findAll(tag)
-        findById(tag)
-        findWhere(tag)
-        insert(tag)
-        updateOne(tag)
-        deleteOne(tag)
-        deleteWhere(tag)
-        deleteAll(tag)
+    open fun defaultRoutes(route: Route, groupName : String) = with(route) {
+        findAll(groupName)
+        findById(groupName)
+        findWhere(groupName)
+        insert(groupName)
+        updateOne(groupName)
+        deleteOne(groupName)
+        deleteWhere(groupName)
+        deleteAll(groupName)
     }
 
-    abstract fun customRoutes(route: Route)
+    abstract fun customRoutes(route: Route, groupName: String)
 
     open fun Route.findAll(tag: String) = get(pluralizeName, {
         tags = listOf(tag)

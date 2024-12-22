@@ -15,3 +15,6 @@ fun Instant.toUTCString(): String = IsoChronology
         ZoneId.of("UTC")
     )
     .format(DateTimeFormatter.ISO_DATE_TIME)
+
+
+fun String.fixApiNaming() : String = lowercase().replace(" ", "-")

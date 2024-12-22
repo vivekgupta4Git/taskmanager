@@ -4,6 +4,6 @@ import com.ruviapps.calm.system.CalmCrudRouter
 
 abstract class CalmRouter<T : CalmModel>(
     basePath: String,
-    tag : String,
+    groupName : String = "",
     controller: CalmController<T>
-) : CalmCrudRouter<T, T, T>(basePath, tag,controller)
+) : CalmCrudRouter<T, T, T>(basePath, groupName,controller)

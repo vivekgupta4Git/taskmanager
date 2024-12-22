@@ -107,13 +107,14 @@ class CarController(service: CarService) : CalmController<Car>(
 
     override fun getListDtoTypeOf(): TypeInfo = typeInfo<List<Car>>()
 
-    override fun customRoutes(route: Route) {
+    override fun customRoutes(route: Route, groupName : String) {
+
         with(route) {
             route("/api") {
                 get("token", {
                     tags = listOf("Token")
                     description = "Get token"
-                    response { HttpStatusCode.OK to { body<Map<String, String>>() } }
+                    response { HttpStatusCode.OK to { body<TokenResponse>() } }
                 }) {
                     val secret = environment.config.property("ktor.jwt.secret").getString()
                     val issuer = environment.config.property("ktor.jwt.issuer").getString()
@@ -124,7 +125,7 @@ class CarController(service: CarService) : CalmController<Car>(
                         .withIssuer(issuer)
                         .withExpiresAt(Date(System.currentTimeMillis() + expiry)) // 1 day
                         .sign(Algorithm.HMAC256(secret))
-                    call.respond(HttpStatusCode.OK, hashMapOf("token" to token))
+                    call.respond(HttpStatusCode.OK, TokenResponse(token))
                 }
             }
         }
@@ -133,9 +134,11 @@ class CarController(service: CarService) : CalmController<Car>(
     override fun documentToDto(document: Document): Car {
         return document.toGetDTO()
     }
+    @Serializable
+    data class TokenResponse(val token : String)
 }
 
 class CarRouter(
     basePath: String,
     controller: CarController
-) : CalmRouter<Car>(controller = controller, basePath = basePath, tag = "Car Api")
+) : CalmRouter<Car>(controller = controller, basePath = basePath, groupName = "Car Api")

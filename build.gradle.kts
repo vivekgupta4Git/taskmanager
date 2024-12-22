@@ -27,6 +27,6 @@ dependencies {
     implementation(libs.bundles.mongodb)
     implementation(libs.firebase.auth.provider)
     implementation(libs.logback.classic)
-
+    implementation("at.favre.lib:bcrypt:0.10.2")
     testImplementation(libs.kotlin.test.junit)
 }
